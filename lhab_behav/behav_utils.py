@@ -166,7 +166,9 @@ def export_behav_with_new_id(orig_file, metadata_file, s_id_lut):
         missing_full_info = pd.DataFrame([])
         df_long_clean = df_long
 
-    if "lhab_mothertongue_data.xlsx" in orig_file:
+    if ("lhab_mothertongue_data.xlsx" in orig_file) or ("lhab_medication_data.xlsx" in orig_file) or \
+            ("lhab_handedness_data" in orig_file) or ("lhab_psqi_data" in orig_file) or \
+            ("lhab_socnet_data" in orig_file):
         nonumeric = True
     else:
         nonumeric = False
