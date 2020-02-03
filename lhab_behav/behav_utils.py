@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import re, os
 from glob import glob
+from pathlib import Path
 
 
 def get_public_sub_id(old_sub_id, lut_file, from_col="old_id", to_col="new_id"):
@@ -192,8 +193,8 @@ def export_domain(in_dir, out_dir, s_id_lut, domain):
     missing_out_dir = os.path.join(out_dir, "missing_info")
     os.makedirs(missing_out_dir, exist_ok=True)
 
-    df_long = pd.DataFrame([], columns=["subject_id", "session_id", "conversion_date", "file"])
-    df_wide = pd.DataFrame([], columns=["subject_id", "session_id", "conversion_date"])
+    df_long = pd.DataFrame([], columns=["subject_id", "session_id", "file"])
+    df_wide = pd.DataFrame([], columns=["subject_id", "session_id"])
     missing_info = pd.DataFrame([], columns=["subject_id", "session_id", "file"])
 
     os.chdir(os.path.join(in_dir, domain))
@@ -231,18 +232,11 @@ def export_domain(in_dir, out_dir, s_id_lut, domain):
     df_wide.sort_values(["subject_id", "session_id"], inplace=True)
     missing_info.sort_values(["subject_id", "session_id"], inplace=True)
 
-    # add conversion date in first row
-    df_long["conversion_date"] = ""
-    df_long.loc[df_long.index[0], "conversion_date"] = pd.datetime.now().date().isoformat()
-
-    df_wide["conversion_date"] = ""
-    df_wide.loc[df_wide.index[0], "conversion_date"] = pd.datetime.now().date().isoformat()
-
     # sort columns
-    c = df_long.columns.drop(["subject_id", "session_id", "file", "conversion_date"]).tolist()
-    df_long = df_long[["subject_id", "session_id"] + c + ["file", "conversion_date"]]
-    c = df_wide.columns.drop(["subject_id", "session_id", "conversion_date"]).tolist()
-    df_wide = df_wide[["subject_id", "session_id"] + c + ["conversion_date"]]
+    c = df_long.columns.drop(["subject_id", "session_id", "file"]).tolist()
+    df_long = df_long[["subject_id", "session_id"] + c + ["file"]]
+    c = df_wide.columns.drop(["subject_id", "session_id"]).tolist()
+    df_wide = df_wide[["subject_id", "session_id"] + c]
     c = missing_info.columns.drop(["subject_id", "session_id", "file"]).tolist()
     missing_info = missing_info[["subject_id", "session_id"] + c + ["file"]]
 
@@ -254,6 +248,11 @@ def export_domain(in_dir, out_dir, s_id_lut, domain):
 
     out_file = os.path.join(missing_out_dir, domain + "_missing_info.tsv")
     missing_info.to_csv(out_file, index=None, sep="\t")
+
+    conversion_date = pd.datetime.now().date().isoformat()
+    conversion_date_file = Path(data_out_dir) / "00_conversion_date" / (domain + "_conversion_date.txt")
+    conversion_date_file.parent.mkdir(exist_ok=True)
+    conversion_date_file.write_text(conversion_date)
 
 
 def create_session_count_file(root_path, out_path, group):
