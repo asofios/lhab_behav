@@ -1,9 +1,18 @@
+"""
+The following subtests have a complex structure that cannot be dealt with automaitcally, hence a mapping file is
+required for
+1	Studienteilnahme - Allgemein
+3	Kognitives Training
+4	Berufliche Tätigkeiten
+5	Reisen
+"""
 from pathlib import Path
 import pandas as pd
 from warnings import warn
 
-root_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/Data/tp6/04_complete")
-out_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/Data/tp6//aggregated_data")
+root_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/04_complete")
+out_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/aggregated_data")
+lut_file = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/change_mapping_sb.xlsx")
 out_path.mkdir(exist_ok=True)
 
 files = list(root_path.glob("*quest*.xlsx"))
@@ -18,7 +27,6 @@ def format_change(file, sheet, usecols=["Nr.", "Question", "Data", "Missing", "C
                   var_cols=["domain", "Nr.", "Question"]):
     info = {
         "02_PrivatesUmfeld": (24, 31),
-        # "03_KognitivesTraining": (34, 43),
         "06_Freizeitbeschäftigungen_01_Sport": (66, 75),
         "06_Freizeitbeschäftigungen_02_HandwerklicheAktivitäten": (78, 84),
         "06_Freizeitbeschäftigungen_03_Spiele": (87, 94),
@@ -51,7 +59,28 @@ def format_change(file, sheet, usecols=["Nr.", "Question", "Data", "Missing", "C
     return df
 
 
+def excel_letter_to_num(l):
+    from string import ascii_lowercase
+    letter_lut = {letter: index for index, letter in enumerate(ascii_lowercase, start=0)}
+    return letter_lut[l.lower()]
+
+
+def lookup_change(file, lut, sheet="01_Veränderungsfragebogen", row_offset=-2):
+    df_out = pd.DataFrame()
+    lut = lut.dropna(axis="index", how="all")
+    df_in = pd.read_excel(file, sheet_name=sheet)
+
+    for _, row in lut.iterrows():
+        name, col_idx, row_idx = row["variable_short_engl"], excel_letter_to_num(row["value_col"]), \
+                                 int(row["value_row"]) + row_offset
+        df_out = df_out.append(pd.DataFrame({"variable": name, "value": df_in.iloc[row_idx, col_idx]}, index=[0]))
+    df_out = df_out.set_index("variable").T
+
+    return df_out
+
+
 dfs = []
+lut = pd.read_excel(lut_file)
 sheet = "01_Veränderungsfragebogen"
 for f in files:
     id = pd.read_excel(f, sheet_name="ID", usecols="A:B", names=["variable", "value"], header=None)
@@ -59,7 +88,9 @@ for f in files:
     id = id.set_index("variable").T
     id["file"] = f
 
-    df = pd.concat((id, format_change(f, sheet)), axis=1, sort=False)
+    df1 = lookup_change(f, lut)
+    df2 = format_change(f, sheet)
+    df = pd.concat((id, df1, df2), axis=1)
     dfs.append(df)
 
     df_out = pd.concat(dfs, axis=0, sort=False)
