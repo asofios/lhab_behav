@@ -101,22 +101,32 @@ def load_data_excel(orig_file, s_id_lut, tp_string_last=True):
 def prepare_missing_df(df_meta_long):
     "Takes metadata df, retains only scores that are missing and replaces them with text info"
     lookup_dict = {
-        2: "medical_reasons",
-        3: "instructions_not_understood",
-        4: "test_termination_by_subject",
-        5: "environmental_circumstance",
-        6: "test_supervisor_error",
-        7: "unknown_reasons",
-        8: "Time reasons",
-        99: "Unknown Reasons"
+        2: 'medical reasons',
+        3: 'instruction not understood',
+        4: 'test termination by subject',
+        5: 'external circumstances (e.g. high temperature in testing room in the summer)',
+        6: 'error made by test administrator',
+        7: 'technical problems',
+        8: 'time reasons (subject had to leave)',
+        9: '(tbd)',
+        10: '(tbd)',
+        11: 'questionnaires: different multiple entries, data cannot be used',
+        12: 'questionnaires: no data available (not filled in)',
+        13: 'questionnaires: interval between tests and questionnaires > 365d',
+        14: '(tbd)',
+        15: '(tbd)',
+        99: 'Unknown Reasons'
     }
-
     missing_info = df_meta_long[df_meta_long.score_name == "missing"]
     missing_details = df_meta_long[df_meta_long.score_name == "missing_text"]
     missing = pd.merge(missing_info, missing_details, how="outer", on=["subject_id", "session_id"],
                        suffixes=("_info", "_details"))
     missing = missing[missing.score_value_info > 0]
 
+    # ensure that missing.score_value_info only has values accounted for in lookup_dict
+    unknown_idx = set(missing.score_value_info) - set(list(lookup_dict.keys()) + [0, 1])
+    if unknown_idx:
+        raise RuntimeError(f"Values present in score_value_info that are not in replace lookup dict {unknown_idx}")
     # disambiguate subjects with whole time point not available ("1") into
     #   - entire timepoint missing and
     #   - entire timepoint missing because not invited (tp4) and
