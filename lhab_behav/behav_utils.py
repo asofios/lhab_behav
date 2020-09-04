@@ -57,6 +57,11 @@ def load_data_excel(orig_file, s_id_lut, tp_string_last=True):
     # na_values seems not to catch numbers consistently
     df_orig.replace({888: np.nan, 999: np.nan}, inplace=True)
 
+    # check that columns (except vp_code) are ending with a session label
+    for c in df_orig.drop(columns=["vp_code"]).columns:
+        if not c[:-1].endswith("_tp"):
+            raise RuntimeError(f"Column does not end with session label {c}")
+
     # ensure that numerical-only subject ids are treated as strings
     df_orig = df_orig.astype({"vp_code": str})
 
@@ -218,7 +223,7 @@ def export_domain(in_dir, out_dir, s_id_lut, domain):
         p = re.compile(r"(lhab_)(\w*?)(_data)")
         test_name = p.findall(os.path.basename(orig_file))[0][1]
 
-        metadata_str = "lhab_{}_metadata.xlsx".format(test_name)  # "_".join(orig_file.split("_")[:2]) + "*" + " \
+        metadata_str = "lhab_{}_metadata.xlsx".format(test_name)
         # ""_metadata.xlsx"
         g = glob(metadata_str)
         if len(g) > 1:
