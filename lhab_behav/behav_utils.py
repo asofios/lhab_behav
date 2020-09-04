@@ -132,6 +132,7 @@ def prepare_missing_df(df_meta_long):
     unknown_idx = set(missing.score_value_info) - set(list(lookup_dict.keys()) + [0, 1])
     if unknown_idx:
         raise RuntimeError(f"Values present in score_value_info that are not in replace lookup dict {unknown_idx}")
+
     # disambiguate subjects with whole time point not available ("1") into
     #   - entire timepoint missing and
     #   - entire timepoint missing because not invited (tp4) and
