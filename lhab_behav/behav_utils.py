@@ -26,7 +26,7 @@ def long_to_wide(long, index, columns, values, nonumeric=False):
         wide = long.pivot_table(index=index, columns=columns, values=values, aggfunc="first")
     else:
         wide = long.pivot_table(index=index, columns=columns, values=values)
-    l = wide.columns.labels
+    l = wide.columns.codes
     le = wide.columns.levels
     o = []
     out_cols = []
@@ -57,10 +57,12 @@ def load_data_excel(orig_file, s_id_lut, tp_string_last=True):
     # na_values seems not to catch numbers consistently
     df_orig.replace({888: np.nan, 999: np.nan}, inplace=True)
 
-    # check that columns (except vp_code) are ending with a session label
-    for c in df_orig.drop(columns=["vp_code"]).columns:
-        if not c[:-1].endswith("_tp"):
-            raise RuntimeError(f"Column does not end with session label {c}")
+    # for data files, check that columns (except vp_code) are ending with a session label
+    if tp_string_last:
+        col_names = df_orig.drop(columns=["vp_code"]).columns
+        for c in col_names:
+            if not c[:-1].endswith("_tp"):
+                raise RuntimeError(f"Column does not end with session label {c}")
 
     # ensure that numerical-only subject ids are treated as strings
     df_orig = df_orig.astype({"vp_code": str})
@@ -185,7 +187,7 @@ def export_behav_with_new_id(orig_file, metadata_file, s_id_lut):
 
     if ("lhab_mothertongue_data.xlsx" in orig_file) or ("lhab_medication_data.xlsx" in orig_file) or \
             ("lhab_handedness_data" in orig_file) or ("lhab_psqi_data" in orig_file) or \
-            ("lhab_socnet_data" in orig_file):
+            ("lhab_socnet_data" in orig_file) or ("lhab_multilingualism_data" in orig_file):
         nonumeric = True
     else:
         nonumeric = False
