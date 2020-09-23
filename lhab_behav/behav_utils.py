@@ -19,13 +19,11 @@ def get_public_sub_id(old_sub_id, lut_file, from_col="old_id", to_col="new_id"):
         return out_list
 
 
-def long_to_wide(long, index, columns, values, nonumeric=False):
-    if nonumeric:
-        dd = long[index + columns]
-        assert not dd.duplicated().any()
-        wide = long.pivot_table(index=index, columns=columns, values=values, aggfunc="first")
-    else:
-        wide = long.pivot_table(index=index, columns=columns, values=values)
+def long_to_wide(long, index, columns, values):
+    dd = long[index + columns]
+    assert not dd.duplicated().any()
+    wide = long.pivot_table(index=index, columns=columns, values=values, aggfunc="first")
+
     l = wide.columns.codes
     le = wide.columns.levels
     o = []
@@ -67,7 +65,6 @@ def load_data_excel(orig_file, s_id_lut, tp_string_last=True):
     # ensure that numerical-only subject ids are treated as strings
     df_orig = df_orig.astype({"vp_code": str})
 
-    # fixme 2hand has vp_codes starting with capital letters
     df_orig["vp_code"] = df_orig["vp_code"].str.lower()
 
     if (df_orig.columns.tolist() == ['no missings']) & (df_orig.shape == (0, 1)):  # metadata file with no missings
@@ -185,15 +182,7 @@ def export_behav_with_new_id(orig_file, metadata_file, s_id_lut):
         missing_full_info = pd.DataFrame([])
         df_long_clean = df_long
 
-    if ("lhab_mothertongue_data.xlsx" in orig_file) or ("lhab_medication_data.xlsx" in orig_file) or \
-            ("lhab_handedness_data" in orig_file) or ("lhab_psqi_data" in orig_file) or \
-            ("lhab_socnet_data" in orig_file) or ("lhab_multilingualism_data" in orig_file):
-        nonumeric = True
-    else:
-        nonumeric = False
-
-    df_wide_clean = long_to_wide(df_long_clean, ["subject_id", "session_id"], ["score_name"], ["score_value"],
-                                 nonumeric=nonumeric)
+    df_wide_clean = long_to_wide(df_long_clean, ["subject_id", "session_id"], ["score_name"], ["score_value"])
     df_wide_clean.rename(columns=lambda c: c.split("test_score_")[-1], inplace=True)
 
     df_wide_clean.sort_values(by=["subject_id", "session_id"], inplace=True)
