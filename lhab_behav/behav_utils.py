@@ -102,6 +102,25 @@ def load_data_excel(orig_file, s_id_lut, tp_string_last=True):
     return df_orig, df_long
 
 
+def load_data_excel_already_has_new_id(orig_file):
+    df_orig = pd.read_excel(orig_file, na_values=["NA01", "NA02", "NA03", "NA04", "NA4", "NA1", "NA2", "TL", "X", 888,
+                                                  999])
+    # na_values seems not to catch numbers consistently
+    df_orig.replace({888: np.nan, 999: np.nan}, inplace=True)
+
+    dup = df_orig[["subject_id", "session_id"]].duplicated()
+    if dup.any():
+        raise RuntimeError(f"There are duplicated subject_id-session_id-lines")
+
+    score_cols = df_orig.columns.drop(["subject_id", "session_id"]).tolist()
+    df_long = pd.melt(df_orig, id_vars=["subject_id", "session_id"],
+                      value_vars=score_cols,
+                      var_name='score_name', value_name="score_value")
+
+    df_long.dropna(inplace=True)
+    return df_orig, df_long
+
+
 def prepare_missing_df(df_meta_long):
     "Takes metadata df, retains only scores that are missing and replaces them with text info"
     lookup_dict = {
@@ -168,12 +187,16 @@ def set_invalid_values_to_nan(df_long, df_meta_long):
     return missing_full_info, df_long_clean
 
 
-def export_behav_with_new_id(orig_file, metadata_file, s_id_lut):
+def format_and_export_behav(orig_file, metadata_file, s_id_lut, already_has_new_id=False):
     p = re.compile(r"(lhab_)(\w*?)(_data)")
     test_name = p.findall(os.path.basename(orig_file))[0][1]
 
-    df_orig, df_long = load_data_excel(orig_file, s_id_lut)
-    df_meta_orig, df_meta_long = load_data_excel(metadata_file, s_id_lut, tp_string_last=False)
+    if already_has_new_id:
+        df_orig, df_long = load_data_excel_already_has_new_id(orig_file)
+        df_meta_orig, df_meta_long = load_data_excel_already_has_new_id(metadata_file)
+    else:
+        df_orig, df_long = load_data_excel(orig_file, s_id_lut)
+        df_meta_orig, df_meta_long = load_data_excel(metadata_file, s_id_lut, tp_string_last=False)
 
     if not df_meta_long is None:
         # remove values that should be missing but are not
@@ -181,6 +204,8 @@ def export_behav_with_new_id(orig_file, metadata_file, s_id_lut):
     else:  # if no missing
         missing_full_info = pd.DataFrame([])
         df_long_clean = df_long
+
+    check_new_ids(df_long_clean)
 
     df_wide_clean = long_to_wide(df_long_clean, ["subject_id", "session_id"], ["score_name"], ["score_value"])
     df_wide_clean.rename(columns=lambda c: c.split("test_score_")[-1], inplace=True)
@@ -194,7 +219,29 @@ def export_behav_with_new_id(orig_file, metadata_file, s_id_lut):
     return df_long_clean, df_wide_clean, missing_full_info
 
 
-def export_domain(in_dir, out_dir, s_id_lut, domain):
+def check_new_ids(df):
+    """
+    Checks if subject_if and session_id conform to expectations
+    lhabX1234, tp1
+    """
+    for c in ["subject_id", "session_id"]:
+        if c not in df.columns:
+            raise RuntimeError(f"{c} not in data frame")
+
+    correct_len = {"subject_id": 9, "session_id": 3}
+    for c, l in correct_len.items():
+        error_index = ~(df[c].str.len() == l)
+        if error_index.any():
+            raise RuntimeError(f"{c}: Not all cells have expected length of {l}")
+
+    start_with = {"subject_id": "lhabX", "session_id": "tp"}
+    for c, sw in start_with.items():
+        error_index = ~(df[c].str.startswith(sw))
+        if error_index.any():
+            raise RuntimeError(f"{c}: Not all cells start with {sw}")
+
+
+def export_domain(in_dir, out_dir, s_id_lut, domain, files_already_have_new_id=[]):
     data_out_dir = os.path.join(out_dir, "data")
     os.makedirs(data_out_dir, exist_ok=True)
     missing_out_dir = os.path.join(out_dir, "missing_info")
@@ -226,7 +273,9 @@ def export_domain(in_dir, out_dir, s_id_lut, domain):
             metadata_file = g[0]
         data_file_path = os.path.join(in_dir, domain, metadata_file)
 
-        df_long_, df_wide_, missing_info_ = export_behav_with_new_id(data_file, data_file_path, s_id_lut)
+        already_has_new_id = orig_file in files_already_have_new_id
+        df_long_, df_wide_, missing_info_ = format_and_export_behav(data_file, data_file_path, s_id_lut,
+                                                                    already_has_new_id)
         df_long_["file"] = orig_file
         missing_info_["file"] = metadata_file
 
