@@ -59,7 +59,6 @@ def id_cleaning(df):
     df.replace({"SUBJECT": {
         "b3ncv": "b3nv"}}, inplace=True)
 
-    # fixme
     # drop xfx1_t5
     ind = ~(df.SUBJECT == "xfx1_t5")
     df = df[ind]
