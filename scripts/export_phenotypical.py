@@ -1,13 +1,23 @@
 import os
 from glob import glob
+from pathlib import Path
 from lhab_behav.behav_utils import export_domain, create_session_count_file
 
-s_id_lut = "/Volumes/lhab_raw/01_RAW/00_PRIVATE_sub_lists/new_sub_id_lut.tsv"
+lut_root = Path("/Volumes/lhab_raw")
+s_id_lut = lut_root / "01_RAW/00_PRIVATE_sub_lists/new_sub_id_lut.tsv"
 
-in_root_dir = "/Volumes/lhab_public/03_Data/06_DataConversion/01_DataPreparation"
-out_root_dir = "/Volumes/lhab_public/03_Data/06_DataConversion/02_ConvertedData"
+data_root = Path("/Volumes/lhab_public")
+in_root_dir = data_root / "03_Data/06_DataConversion/01_DataPreparation"
+out_root_dir = data_root / "/03_Data/06_DataConversion/02_ConvertedData"
 
 files_already_have_new_id = ["lhab_ubo_example_tmp_data.xlsx"]
+
+
+# check folders are available
+if not lut_root.is_dir():
+    raise NotADirectoryError(f"lut_root {lut_root} not found. Connect to server? Stopping.")
+if not data_root.is_dir():
+    raise NotADirectoryError(f"data_root {data_root} not found. Connect to server? Stopping.")
 
 # get groups
 os.chdir(in_root_dir)
