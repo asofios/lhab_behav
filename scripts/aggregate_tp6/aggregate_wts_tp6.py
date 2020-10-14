@@ -15,4 +15,4 @@ for f in files:
 
 df = pd.concat(dfs, sort=False)
 df.reset_index(drop=True, inplace=True)
-df.to_excel(out_path / "00_aggregated_WTS.xlsx", index=False)
+df.to_excel(out_path / "00_aggregated_WTS_orig.xlsx", index=False)
