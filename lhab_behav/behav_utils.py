@@ -9,12 +9,18 @@ def get_public_sub_id(old_sub_id, lut_file, from_col="old_id", to_col="new_id"):
     """returns public sub_id of style lhabX0001
     if old_subj_id is string: returns string
     if old_subj_id is list: returns list """
-    df = pd.read_csv(lut_file, sep="\t")
-    df = df.set_index(from_col)
+    df = pd.read_csv(lut_file, sep="\t").dropna().set_index(from_col)
+    lut = df.to_dict()[to_col]
+
+    def get_id(lut, old_id):
+        if old_id not in lut:
+            raise RuntimeError(f"{old_id} cannot be found in lut_file {lut_file}")
+        return lut[old_id]
+
     if isinstance(old_sub_id, str):
-        return df.loc[old_sub_id].values[0]
+        return get_id(lut, old_sub_id)
     else:
-        out_list = df.loc[old_sub_id, to_col].tolist()
+        out_list = [get_id(lut, old_id) for old_id in old_sub_id]
         assert len(out_list) == len(old_sub_id), "In and out list not the same length %s, %s" % (out_list, old_sub_id)
         return out_list
 
