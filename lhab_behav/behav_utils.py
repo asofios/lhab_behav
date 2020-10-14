@@ -3,7 +3,7 @@ import pandas as pd
 import re, os
 from glob import glob
 from pathlib import Path
-
+from datetime import datetime
 
 def get_public_sub_id(old_sub_id, lut_file, from_col="old_id", to_col="new_id"):
     """returns public sub_id of style lhabX0001
@@ -311,7 +311,7 @@ def export_domain(in_dir, out_dir, s_id_lut, domain, files_already_have_new_id=[
     out_file = os.path.join(missing_out_dir, domain + "_missing_info.tsv")
     missing_info.to_csv(out_file, index=None, sep="\t")
 
-    conversion_date = pd.datetime.now().date().isoformat()
+    conversion_date = datetime.now().date().isoformat()
     conversion_date_file = Path(data_out_dir) / "00_conversion_date" / (domain + "_conversion_date.txt")
     conversion_date_file.parent.mkdir(exist_ok=True)
     conversion_date_file.write_text(conversion_date)
