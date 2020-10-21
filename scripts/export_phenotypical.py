@@ -8,10 +8,10 @@ s_id_lut = lut_root / "01_RAW/00_PRIVATE_sub_lists/new_sub_id_lut.tsv"
 
 data_root = Path("/Volumes/lhab_public")
 in_root_dir = data_root / "03_Data/06_DataConversion/01_DataPreparation"
+
 out_root_dir = data_root / "03_Data/06_DataConversion/02_ConvertedData"
 
-files_already_have_new_id = ["lhab_ubo_example_tmp_data.xlsx"]
-
+files_already_have_new_id = ["lhab_wmh_ubo_2D_data.xlsx", "lhab_wmh_ubo_3D_data.xlsx"]
 
 # check folders are available
 if not lut_root.is_dir():
