@@ -23,7 +23,7 @@ out_dir = Path(
     "/Volumes/lhab_public/03_Data/06_DataConversion/01_DataPreparation/10_Neuroimaging/05_ready_2_convert/01_wmh")
 out_dir.mkdir(exist_ok=True, parents=True)
 
-file = in_dir / "WMH_UBO_spreadsheet_2D_all_Tp6.xlsx"
+file = in_dir / "WMH_UBO_spreadsheet_2D_fulldata_Tp6.xlsx"
 df, df_metadata = wrangle_ubo(file, "_2D")
 df.to_excel(out_dir / "lhab_wmh_ubo_2D_data.xlsx", index=False)
 df_metadata.to_excel(out_dir / "lhab_wmh_ubo_2D_metadata.xlsx", index=False)
