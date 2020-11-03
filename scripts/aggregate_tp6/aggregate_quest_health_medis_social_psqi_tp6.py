@@ -20,10 +20,7 @@ def extract_data_via_mapping(file, lut, sheet="01_Veränderungsfragebogen", row_
     df_out = pd.DataFrame()
     lut = lut.dropna(axis="index", how="all")
 
-    # encoding breaks load code
-    sheet_ = 4 if sheet == "03_Kardivaskulär" else sheet
-
-    df_in = pd.read_excel(file, sheet_name=sheet_)
+    df_in = pd.read_excel(file, sheet_name=sheet)
     for _, row in lut.iterrows():
         name, col_idx, row_idx = row["variable_short_engl"], excel_letter_to_num(row["value_col"]), \
                                  int(row["value_row"]) + row_offset
@@ -33,7 +30,9 @@ def extract_data_via_mapping(file, lut, sheet="01_Veränderungsfragebogen", row_
     return df_out
 
 
-sheets = ["02_Gesundheitszustand", "10_Soziale_Unterstützung", "12_Pittsburgh_Sleep_Inventory"]
+sheets = ["02_Gesundheitszustand", "04_Medikationsanamnese", "10_Soziale_Unterstützung",
+          "12_Pittsburgh_Sleep_Inventory"]
+
 
 for sheet in sheets:
     print(sheet)
@@ -52,5 +51,5 @@ for sheet in sheets:
         df = pd.concat((id, df1), axis=1)
         dfs.append(df)
 
-        df_out = pd.concat(dfs, axis=0, sort=False)
-        df_out.to_excel(out_path / f"00_aggregated_{sheet}.xlsx", index=False)
+    df_out = pd.concat(dfs, axis=0, sort=False)
+    df_out.to_excel(out_path / f"00_aggregated_{sheet}.xlsx", index=False)
