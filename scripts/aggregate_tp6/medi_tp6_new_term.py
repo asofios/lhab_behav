@@ -2,54 +2,21 @@ from pathlib import Path
 import pandas as pd
 from warnings import warn
 
-root_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/04_complete")
-out_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/aggregated_data")
+in_file = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/aggregated_data"
+               "/00_aggregated_04_Medikationsanamnese.xlsx")
+old_term_file = Path(
+    "/Volumes/lhab_public/03_Data/04_data_questionnaires/02_datacleaning/01_clean_converted/03_medication/01_aggregateddata_medi/fl_tests/clusters_200_labled_MMu.xlsx")
+out_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/aggregated_data/medi")
 out_path.mkdir(exist_ok=True)
 
-files = list(root_path.glob("*quest*.xlsx"))
-df_out = pd.DataFrame()
+old_terms = pd.read_excel(old_term_file)
+medis_tp6 = pd.read_excel(in_file)
 
+reasons = pd.Series(medis_tp6.filter(like="Verwendungszweck").values.flatten()).dropna()
 
-def excel_letter_to_num(l):
-    from string import ascii_lowercase
-    letter_lut = {letter: index for index, letter in enumerate(ascii_lowercase, start=0)}
-    return letter_lut[l.lower()]
+reasons = reasons.unique()
 
+new_terms = set(reasons) - set(old_terms["problem"])
 
-def extract_data_via_mapping(file, lut, sheet="01_Veränderungsfragebogen", row_offset=-2):
-    df_out = pd.DataFrame()
-    lut = lut.dropna(axis="index", how="all")
-
-    df_in = pd.read_excel(file, sheet_name=sheet)
-    for _, row in lut.iterrows():
-        name, col_idx, row_idx = row["variable_short_engl"], excel_letter_to_num(row["value_col"]), \
-                                 int(row["value_row"]) + row_offset
-        df_out = df_out.append(pd.DataFrame({"variable": name, "value": df_in.iloc[row_idx, col_idx]}, index=[0]))
-    df_out = df_out.set_index("variable").T
-
-    return df_out
-
-
-sheets = ["02_Gesundheitszustand", "04_Medikationsanamnese", "10_Soziale_Unterstützung",
-          "12_Pittsburgh_Sleep_Inventory"]
-
-
-for sheet in sheets:
-    print(sheet)
-    lut_file = Path(f"/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/mapping/mapping_{sheet}.xlsx")
-    lut = pd.read_excel(lut_file)
-
-    dfs = []
-    for f in files:
-        print(f)
-        id = pd.read_excel(f, sheet_name="ID", usecols="A:B", names=["variable", "value"], header=None)
-        id.dropna(axis="index", how="all", inplace=True)
-        id = id.set_index("variable").T
-        id["file"] = f
-
-        df1 = extract_data_via_mapping(f, lut, sheet=sheet)
-        df = pd.concat((id, df1), axis=1)
-        dfs.append(df)
-
-    df_out = pd.concat(dfs, axis=0, sort=False)
-    df_out.to_excel(out_path / f"00_aggregated_{sheet}.xlsx", index=False)
+df = pd.DataFrame({"problem": list(new_terms)})
+df.to_excel(out_path / "medis_new_problems_tp6.xlsx", index=False)
