@@ -45,6 +45,7 @@ lut_oldfile = pd.read_excel(lut_file_old)
 
 dfs = []
 for f in files:
+    print(f)
     id = pd.read_excel(f, sheet_name="ID", usecols="A:B", names=["variable", "value"], header=None)
     id.dropna(axis="index", how="all", inplace=True)
     id = id.set_index("variable").T
@@ -54,6 +55,5 @@ for f in files:
     df = pd.concat((id, df1), axis=1)
     dfs.append(df)
 
-    print(f)
-    df_out = pd.concat(dfs, axis=0, sort=False)
-    df_out.to_excel(out_path / f"00_aggregated_{sheet}.xlsx", index=False)
+df_out = pd.concat(dfs, axis=0, sort=False)
+df_out.to_excel(out_path / f"00_aggregated_{sheet}.xlsx", index=False)
