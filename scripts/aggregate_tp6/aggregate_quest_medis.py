@@ -16,23 +16,14 @@ def excel_letter_to_num(l):
     return letter_lut[l.lower()]
 
 
-def extract_data_via_mapping(file, lut27, lut29, sheet="01_Veränderungsfragebogen", row_offset=-2):
+def extract_data_via_mapping(file, lut_newfile, lut_oldfile, sheet, row_offset=-2):
     df_out = pd.DataFrame()
+    df_in = pd.read_excel(file, sheet_name=sheet)
 
-    # encoding breaks load code
-    sheet_ = 4 if sheet == "03_Kardivaskulär" else sheet
-
-    df_in = pd.read_excel(file, sheet_name=sheet_)
-
-    # cardio comes in different formats 29 and 27 lines
-    # (this is because some files dont have the Keine der genannten Behandlungen cells
-
-    if len(df_in) == 29:
-        lut = lut29.dropna(axis="index", how="all")
-    elif len(df_in) == 27:
-        lut = lut27.dropna(axis="index", how="all")
+    if "oldfile" in str(file):
+        lut = lut_oldfile.dropna(axis="index", how="all")
     else:
-        raise Exception(file, len(df_in))
+        lut = lut_newfile.dropna(axis="index", how="all")
 
     for _, row in lut.iterrows():
         name, col_idx, row_idx = row["variable_short_engl"], excel_letter_to_num(row["value_col"]), \
@@ -43,14 +34,14 @@ def extract_data_via_mapping(file, lut27, lut29, sheet="01_Veränderungsfragebog
     return df_out
 
 
-sheet = "03_Kardivaskulär"
+sheet = "04_Medikationsanamnese"
 
-lut_file = Path(
-    f"/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/mapping/mapping_{sheet}_27.xlsx")
-lut_27 = pd.read_excel(lut_file)
-lut_file = Path(
-    f"/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/mapping/mapping_{sheet}_29.xlsx")
-lut_29 = pd.read_excel(lut_file)
+lut_file_new = Path(
+    f"/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/mapping/mapping_{sheet}.xlsx")
+lut_newfile = pd.read_excel(lut_file_new)
+lut_file_old = Path(
+    f"/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/mapping/mapping_{sheet}_oldfile.xlsx")
+lut_oldfile = pd.read_excel(lut_file_old)
 
 dfs = []
 for f in files:
@@ -59,9 +50,10 @@ for f in files:
     id = id.set_index("variable").T
     id["file"] = f
 
-    df1 = extract_data_via_mapping(f, lut_27, lut_29, sheet=sheet)
+    df1 = extract_data_via_mapping(f, lut_newfile, lut_oldfile, sheet=sheet)
     df = pd.concat((id, df1), axis=1)
     dfs.append(df)
 
+    print(f)
     df_out = pd.concat(dfs, axis=0, sort=False)
     df_out.to_excel(out_path / f"00_aggregated_{sheet}.xlsx", index=False)
