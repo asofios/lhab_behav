@@ -63,5 +63,5 @@ for f in files:
     df = pd.concat((id, df1), axis=1)
     dfs.append(df)
 
-    df_out = pd.concat(dfs, axis=0, sort=False)
-    df_out.to_excel(out_path / f"00_aggregated_{sheet}.xlsx", index=False)
+df_out = pd.concat(dfs, axis=0, sort=False)
+df_out.to_excel(out_path / f"00_aggregated_{sheet}.xlsx", index=False)
