@@ -19,7 +19,7 @@ sel_cols = ['SUBJECT', 'AL_COR0', 'AL_OMI0', 'AL_LAP0', 'AL_ANT0', 'AL_MEA0',
             'AL_OMI4', 'AL_LAP4', 'AL_ANT4', 'AL_MEA4', 'AL_MDN4', 'AL_STD4',
             'AL_COR5', 'AL_OMI5', 'AL_LAP5', 'AL_ANT5', 'AL_MEA5', 'AL_MDN5',
             'AL_STD5', 'WM3_COR0', 'WM3_ERR0', 'WM3_OMI0', 'WM3_LAP0', 'WM3_MEA0',
-            'WM3_MDN0', 'WM3_STD0', 'DA3_COR0', 'DA3_ERR0', 'DA3_OMI0', 'DA3_LAP0',
+            'WM3_MDN0', 'WM3_STD0', 'DA3_COR0', 'DA3_OMI0', 'DA3_LAP0',
             'DA3_MEA0', 'DA3_MDN0', 'DA3_STD0', 'DA3_COR1', 'DA3_OMI1', 'DA3_LAP1',
             'DA3_MEA1', 'DA3_MDN1', 'DA3_STD1', 'DA3_ERR2', 'DA3_OMI2', 'GO1_COR0',
             'GO1_ERR0', 'GO1_OMI0', 'GO1_LAP0', 'GO1_MEA0', 'GO1_MDN0', 'GO1_STD0',
@@ -30,6 +30,7 @@ df.rename(columns={"SUBJECT": "vp_code"}, inplace=True)
 
 df.vp_code = df.vp_code.str.lower()
 df.vp_code = df.vp_code.str.replace("_tp6", "")
+df.vp_code = df.vp_code.str.replace("_t5", "")
 
 error_index = (df.vp_code.str.len() != 4)
 print(df.loc[error_index])
