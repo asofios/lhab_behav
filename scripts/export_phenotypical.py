@@ -11,7 +11,18 @@ in_root_dir = data_root / "03_Data/06_DataConversion/01_DataPreparation"
 
 out_root_dir = data_root / "03_Data/06_DataConversion/02_ConvertedData"
 
-files_already_have_new_id = ["lhab_wmh_ubo_2D_data.xlsx", "lhab_wmh_ubo_3D_data.xlsx"]
+files_already_have_new_id = ['lhab_lacunes_parcMNI_JHUlabels_data.xlsx',
+                             'lhab_lacunes_parcMNI_JHUtracts_data.xlsx',
+                             'lhab_lacunes_parcMNI_hoCort_data.xlsx',
+                             'lhab_lacunes_parcMNI_hoSubcort_data.xlsx',
+                             'lhab_lacunes_parcMNI_oxThal_data.xlsx',
+                             'lhab_wmh_ubo2d_orig_data.xlsx',
+                             'lhab_wmh_ubo2d_parcMNI_JHUlabels_data.xlsx',
+                             'lhab_wmh_ubo2d_parcMNI_JHUtracts_data.xlsx',
+                             'lhab_wmh_ubo2d_parcMNI_hoCort_data.xlsx',
+                             'lhab_wmh_ubo2d_parcMNI_hoSubcort_data.xlsx',
+                             'lhab_wmh_ubo2d_parcMNI_oxThal_data.xlsx',
+                             'lhab_wmh_ubo3d_orig_data.xlsx']
 
 # check folders are available
 if not lut_root.is_dir():
