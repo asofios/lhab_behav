@@ -6,7 +6,7 @@ root_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata
 out_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/aggregated_data")
 out_path.mkdir(exist_ok=True)
 
-files = list(root_path.glob("*quest*.xlsx"))
+files = sorted(root_path.glob("*quest*.xlsx"))
 df_out = pd.DataFrame()
 
 

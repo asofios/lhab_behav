@@ -2,12 +2,12 @@ from pathlib import Path
 import pandas as pd
 from warnings import warn
 
-root_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/Data/tp6/04_complete")
-out_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/Data/tp6//aggregated_data")
+root_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/04_complete")
+out_path = Path("/Volumes/lhab_public/03_Data/04_data_questionnaires/00_rawdata_tp6/aggregated_data")
 out_path.mkdir(exist_ok=True)
 
 sheets = ["05_Lebenszufriedenheit", "06_HADS", "07_PANAS", "08_PRMQ", "09_TICS", "11_Epworth_Sleepiness_Scale"]
-files = list(root_path.glob("*quest*.xlsx"))
+files = sorted(root_path.glob("*quest*.xlsx"))
 df_out = pd.DataFrame()
 
 
